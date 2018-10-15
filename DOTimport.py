@@ -13,7 +13,7 @@
 import arcpy, csv, ftplib, datetime, gnupg, os
 from arcpy import env
 
-logpath = r"d:\\scripts\\Collisions\\logs\\"
+logpath = r"\path\to\your\logfile"
 logfile = logpath + 'DOTmonthly.txt'
 if arcpy.Exists(logfile):
     arcpy.Delete_management(logfile)
@@ -31,7 +31,7 @@ csvFilepath = "./downloads/"+ month +".csv"
 
 #Open ftp connection and get the file
 ftp = ftplib.FTP('ftp.wsdot.wa.gov', 'anonymous','')
-ftp.cwd("/public/TDO/CLAS/DataExtract/City/1485")
+ftp.cwd("/path/to/file")
 gFile = open(encryptedFilepath, "wb")
 ftp.retrbinary('RETR COLLI.ASC', gFile.write)
 gFile.close()
@@ -53,13 +53,10 @@ if arcpy.Exists(csvFilepath):
     reader = csv.reader(open(file, "rb"), delimiter = ",", skipinitialspace=True)
 
     #---Database Admin Connections---
-    workspace = r"D:\Scripts\Collisions\Yakima.sde"
-    #fc = 'Database Connections/Yakima.sde/Yakima.DBO.Transportation/Yakima.DBO.Collisions'
-    #workspace = os.path.dirname(fc)
-    sde = r"D:\Scripts\Collisions\Yakima.sde\Yakima.DBO.Transportation\Yakima.DBO.Collisions"
+    workspace = r"\path\to\yourfile.sde"
+    sde = r"\path\to\your\db"
     edit = arcpy.da.Editor(workspace)
     edit.startEditing(False,True)
-    #edit.startOperation()
     arcpy.env.workspace = sde
 
     cursor = arcpy.da.InsertCursor( sde, ("Report_Number","Record_Type","Transaction_Type","City","County","Case_Number","Local_Agency_Coding","Collision_Date","Rural_Urban_Code","State_Functional_Class","Federal_Functional_Class","Fire_Resulted_Indicator","Stolen_Vehicle_Indicator","Hit_Run_Indicator","Number_of_Motor_Vehicles_Involv","Number_of_Pedestrians_Involved","Number_of_Pedalcyclists_Involve","Number_of_Injuries_Involved","Number_of_Fatalities_Involved","Accident_Severity","F1st_Collision_Type","F2nd_Collision_Type","F1st_Object_Struck","F2nd_Object_Struck","Junction_Relationship","Investigating_Agency","Roadway_Surface_Conditions","Weather_Conditions","Light_Conditions","Workzone_Status","Location_Character","Roadway_Character","Intentional_Action_Indicator","Medically_Caused_Indicator","Non_Traffic_Indicator","Legal_Intervention_Indicator","Police_Dispatched","Police_Arrived","Stateplane_X","Stateplane_Y","SHAPE@XY") )
@@ -113,7 +110,7 @@ if arcpy.Exists(csvFilepath):
             elif row[2] == "D":
                 print "Deleting Row";
                 print >> log, "delete" + row[0]
-                remCursor = arcpy.UpdateCursor("D:\Scripts\Collisions\Yakima.sde\Yakima.DBO.Transportation\Yakima.DBO.Collisions", "Report_Number = '"+row[0]+"'")
+                remCursor = arcpy.UpdateCursor("\path\to\your\db", "Report_Number = '"+row[0]+"'")
                 for remRow in remCursor:
                     remCursor.deleteRow(remRow)
                 del remCursor
@@ -126,7 +123,7 @@ if arcpy.Exists(csvFilepath):
 else:
     print >> log, "ERROR!! CSV File Doesn't Exist"
 # Remove Duplicates
-remCursor = arcpy.UpdateCursor("D:\Scripts\Collisions\Yakima.sde\Yakima.DBO.Transportation\Yakima.DBO.Collisions", "Report_Number In (SELECT Report_Number FROM Yakima.DBO.Collisions GROUP BY Report_Number HAVING Count(*)>1 ) AND Transaction_Type = 'A'")
+remCursor = arcpy.UpdateCursor("\path\to\your\db", "Report_Number In (SELECT Report_Number FROM YOURGEODB GROUP BY Report_Number HAVING Count(*)>1 ) AND Transaction_Type = 'A'")
 for remRow in remCursor:
     remCursor.deleteRow(remRow)
 del remCursor
